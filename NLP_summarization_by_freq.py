@@ -3,8 +3,12 @@ import nltk
 import string
 import pandas as pd
 import heapq
-nltk.download('punkt')
-nltk.download('stopwords')
+# nltk.download('punkt')
+# nltk.download('stopwords')
+import spacy
+
+pln = spacy.load("pt_core_news_sm")
+
 
 texto_original = """A inteligência artificial é a inteligência similar à humana.
                     Definem como o estudo de agente artificial com inteligência.
@@ -26,15 +30,34 @@ def preprocess(text):
     tokens = [
         palavra for palavra in tokens if palavra not in stopwords and palavra not in string.punctuation]
     formatted_text = ' '.join([str(elemento)
-                                for elemento in tokens if not elemento.isdigit()])
+                               for elemento in tokens if not elemento.isdigit()])
 
     return formatted_text
 
 
-def sumarization_by_freq(original, formatado):
+def preprocess_lematize(text):
+    formatted_text = text.lower()
+    text = re.sub('\s+', ' ', text)
+
+    pln = spacy.load("pt_core_news_sm")
+
+    document = pln(text)
+    tokens = []
+    stopwords = nltk.corpus.stopwords.words('portuguese')
+    for token in document:
+        tokens.append(token.lemma_)
+    tokens = [
+        palavra for palavra in tokens if palavra not in stopwords and palavra not in string.punctuation]
+    formatted_text = ' '.join([str(elemento)
+                               for elemento in tokens if not elemento.isdigit()])
+
+    return formatted_text
+
+
+def sumarization_by_freq(original, quantity):
     # lista_palavras = nltk.word_tokenize(original)
     list_sentences = nltk.sent_tokenize(original)
-
+    formatado = preprocess_lematize(original)
     frequencia_palavras = nltk.FreqDist(nltk.word_tokenize(formatado))
     # for a in frequencia_palavras:
     #     print(a, frequencia_palavras[a])
@@ -60,14 +83,14 @@ def sumarization_by_freq(original, formatado):
 
     sentencas_ordenadas = dict(sorted(notas_sentencas.items(),
                                       key=lambda item: item[1], reverse=True))
-    top3 = heapq.nlargest(
-        3, notas_sentencas, key=notas_sentencas.get)
+    best_sentencas = heapq.nlargest(
+        quantity, notas_sentencas, key=notas_sentencas.get)
     # data = pd.DataFrame.from_dict(
     #     frequencia_palavras, orient='index').sort_values(frequencia_palavras[0], ascending=False)
     # print(data)
 
-    return sentencas_ordenadas
+    return list_sentences, best_sentencas
 
 
-formatted_text = preprocesamento(texto_original)
-print(sumarization_by_freq(texto_original, formatted_text))
+# formatted_text = preprocesamento(texto_original)
+print(sumarization_by_freq(texto_original, 5))
