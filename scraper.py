@@ -8,23 +8,17 @@ import re
 
 def xml_scraper(global_url):
     response = feedparser.parse(global_url)
-    article_list = []
+    urls_list = []
 
     for news in response['entries']:
         description = html_clear(news['summary'])
-        article_list.append({
+        urls_list.append({
             'title': news['title'],
             'pub_date': news['published_parsed'],
             'link': news['link'],
             'description': description})
 
-    return article_list
-
-
-global_url = "https://www.agenciadanoticia.com.br/noticias/"
-news_container = "ul.listaNoticiasEditoria"
-news_url = "li > a"
-news_regex = ""
+    return urls_list
 
 
 def html_scraper(global_url, news_container, news_url, news_regex=None):
@@ -36,7 +30,7 @@ def html_scraper(global_url, news_container, news_url, news_regex=None):
     soup = BeautifulSoup(response.content, 'html.parser',
                          from_encoding='utf-8')
 
-    article_list = []
+    urls_list = []
     if(news_container.startswith('re=')):
         container = soup.findAll(href=re.compile(
             news_container.replace("re=", "", 1)))
@@ -64,28 +58,22 @@ def html_scraper(global_url, news_container, news_url, news_regex=None):
             else:
                 continue
         else:
-            md2_url = news.select_one(news_url)['href']
-            if('javascript' in md2_url):
+            fn_url = md_url['href']
+            if('javascript' in fn_url):
                 continue
-            fn_url = news.select_one(news_url)['href']
 
         if(news_regex):
             fn_url = news_regex + fn_url
         if('¬' in fn_url):
             fn_url = fn_url.replace("¬", "&not", 1)
 
-        article_list.append(fn_url)
-    return article_list
+        urls_list.append(fn_url)
+    return urls_list
 
 
-article_list = html_scraper(global_url, news_container, news_url)
-article_list = [
-    'http://www.afolhadomedionorte.com.br/social-em-acao-assistencia-social-de-nova-olimpia-realiza-entrega-de-kits-de-pascoa/']
-
-
-def scrap_one(article_list):
+def scrap_one(urls_list):
     g = Goose()
-    art = g.extract(article_list)
+    art = g.extract(urls_list)
     noticia_final = ({
         "title": art.title,
         "link": art.final_url,
@@ -95,7 +83,23 @@ def scrap_one(article_list):
     return noticia_final
 
 
-# a = scrap_one(article_list[0])
+def scrap_them_all(urls_list):
+    article_list = []
+    with Goose() as g:
+
+        for tmp in urls_list:
+            art = g.extract(url=tmp)
+            # print(article.cleaned_text)
+            noticia_final = ({
+                "title": art.title,
+                "link": art.final_url,
+                "description": art.cleaned_text,
+                "data": art.publish_datetime_utc
+            })
+            article_list.append(noticia_final)
+
+    return article_list
+# a = scrap_one(urls_list[0])
 # print(a)
 
 # scrap_one(global_url)
