@@ -25,6 +25,10 @@ To get a local copy up and running follow these simple steps.
    source venv/bin/activate # GNU/Linux
    pip install -r requirements.txt
    ```
+3. Install NLTK packages (Optional)
+   ```sh
+   python -m nltk.downloader **name**
+   ```
 
 
 
