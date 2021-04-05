@@ -11,6 +11,7 @@ neusdoc
 # Distribution / packaging
 .Python
 build/
+lessons/
 develop-eggs/
 dist/
 downloads/
