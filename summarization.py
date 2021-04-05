@@ -4,18 +4,21 @@ import heapq
 # nltk.download('punkt')
 # nltk.download('stopwords')
 from utils import preprocess_lematize
-
-# texto_original = """A inteligência artificial é a inteligência similar à humana.
-#                     Definem como o estudo de agente artificial com inteligência.
-#                     Ciência e engenharia de produzir máquinas com inteligência.
-#                     Resolver problemas e possuir inteligência.
-#                     Relacionada ao comportamento inteligente.
-#                     Construção de máquinas para raciocinar.
-#                     Aprender com os erros e acertos.
-#                     Inteligência artificial é raciocinar nas situações do cotidiano."""
+import os
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.luhn import LuhnSummarizer
 
 
-def sumarization_freq(original, quantity):
+def summarizer_sumy(text):
+    parser = PlaintextParser.from_string(
+        text.cleaned_text, Tokenizer('portuguese'))
+    sumarizador = LuhnSummarizer()
+    resumo = sumarizador(parser.document, 5)
+    return resumo
+
+
+def summarization_freq(original):
     # lista_palavras = nltk.word_tokenize(original)
     list_sentences = nltk.sent_tokenize(original)
     formatado = preprocess_lematize(original)
@@ -44,6 +47,8 @@ def sumarization_freq(original, quantity):
 
     sentencas_ordenadas = dict(sorted(notas_sentencas.items(),
                                       key=lambda item: item[1], reverse=True))
+    quantity = round(0.3 * len(list_sentences))
+    quantity = 1 if quantity < 1 else quantity
     best_sentencas = heapq.nlargest(
         quantity, notas_sentencas, key=notas_sentencas.get)
     # data = pd.DataFrame.from_dict(
@@ -53,5 +58,25 @@ def sumarization_freq(original, quantity):
     return list_sentences, best_sentencas
 
 
+def save_summary(title, list_sentences, best_sentencas):
+    HTML_TEMPLATE = """<html>
+    <head>
+        <title>{0}</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    </head>
+    <body>{1}</body>
+
+    </html>"""
+    text = ''
+    for i in list_sentences:
+        if i in best_sentencas:
+            text += str(i).replace(i, f"<mark>{i}</mark>")
+        else:
+            text += i
+
+    arquivo = open(os.path.join(title + '.html'), 'wb')
+    html = HTML_TEMPLATE.format(title + ' - Resumo', text)
+    arquivo.write(html.encode('utf-8'))
+    arquivo.close()
 # formatted_text = preprocesamento(texto_original)
 # print(sumarization_by_freq(texto_original, 5))

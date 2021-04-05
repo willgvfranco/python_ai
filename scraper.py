@@ -74,17 +74,21 @@ def html_scraper(global_url, news_container, news_url, news_regex=None):
 def scrap_one(urls_list):
     g = Goose()
     art = g.extract(urls_list)
-    noticia_final = ({
+    news = ({
         "title": art.title,
         "link": art.final_url,
         "description": art.cleaned_text,
         "data": art.publish_datetime_utc
     })
-    return noticia_final
+    return news
 
 
 def scrap_them_all(urls_list):
     article_list = []
+
+    if(not isinstance(urls_list, list)):
+        return scrap_one(urls_list)
+
     with Goose() as g:
 
         for tmp in urls_list:
@@ -99,7 +103,3 @@ def scrap_them_all(urls_list):
             article_list.append(noticia_final)
 
     return article_list
-# a = scrap_one(urls_list[0])
-# print(a)
-
-# scrap_one(global_url)

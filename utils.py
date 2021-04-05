@@ -45,3 +45,11 @@ def preprocess_lematize(text):
                                for elemento in tokens if not elemento.isdigit()])
 
     return formatted_text
+
+
+def strings_concatenate(article_list):
+    feed_content = ""
+    for article in article_list:
+        feed_content += article['description']
+
+    return feed_content
